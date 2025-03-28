@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Room Prompt Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .card {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        button {
+            padding: 8px 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 5px;
+            margin-bottom: 5px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        input, select {
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 100%;
+        }
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .api-status {
+            margin-top: 10px;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 14px;
+            display: inline-block;
+        }
+        .available {
+            background-color: #dff0d8;
+            color: #3c763d;
+        }
+        .unavailable {
+            background-color: #f2dede;
+            color: #a94442;
+        }
+    </style>
+</head>
+<body>
+    <h1>Data Room Prompt Generator</h1>
+    
+    <div class="container">
+        <div class="card">
+            <h2>Vercel Deployment Test Page</h2>
+            <p>This is a static HTML page that serves as a test for the Vercel deployment.</p>
+            <p>If you're seeing this page, it means the deployment was partially successful, but there may be issues with Flask template rendering.</p>
+            <p>Please check the logs in your Vercel dashboard for more information.</p>
+            
+            <h3>Test API Endpoints</h3>
+            <ul>
+                <li><a href="/test" target="_blank">/test - Basic API test</a></li>
+                <li><a href="/api-status" target="_blank">/api-status - Check Anthropic API status</a></li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

@@ -23,9 +23,25 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max upload size
 # Get Anthropic API key from environment variable (if available)
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
 
-@app.route('/')
+@app.route('/', methods=['GET'])
 def index():
-    return render_template('data_room_prompt_generator.html')
+    try:
+        # First try to serve the template
+        return render_template('data_room_prompt_generator.html')
+    except Exception as e:
+        # If template fails, serve static HTML file
+        try:
+            with open(os.path.join(os.path.dirname(__file__), 'index.html'), 'r') as f:
+                html_content = f.read()
+                return html_content
+        except Exception as static_err:
+            # If all fails, return error as JSON
+            return jsonify({
+                "error": f"Template error: {str(e)}",
+                "static_error": f"Static HTML error: {str(static_err)}",
+                "template_path": template_path,
+                "template_exists": os.path.exists(template_path)
+            }), 500
 
 @app.route('/import-csv', methods=['POST'])
 def import_csv():
@@ -244,6 +260,16 @@ def api_status():
     else:
         return jsonify({"status": "unavailable"})
 
+@app.route('/test', methods=['GET'])
+def test():
+    """Simple test endpoint to check if the app is running"""
+    return jsonify({
+        "status": "ok",
+        "message": "API is running",
+        "template_path": template_path,
+        "templates_exist": os.path.exists(template_path)
+    })
+
 @app.errorhandler(500)
 def server_error(error):
     app.logger.error(f'Server error: {error}')
@@ -270,6 +296,5 @@ if __name__ == '__main__':
     
     app.run(debug=True, port=5001)
 
-# Vercel serverless handler
-def handler(request):
-    return app
+# For Vercel Serverless Functions, we need to export the Flask app as 'app'
+# The @vercel/python handler will use this export
