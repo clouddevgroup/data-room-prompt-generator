@@ -11,7 +11,13 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
-app = Flask(__name__)
+# Set up template folder path for local and Vercel environments
+template_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'templates')
+if not os.path.exists(template_path):
+    # If not found, try relative to current directory (for Vercel)
+    template_path = os.path.join(os.getcwd(), 'templates')
+
+app = Flask(__name__, template_folder=template_path)
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max upload size
 
 # Get Anthropic API key from environment variable (if available)
@@ -264,8 +270,6 @@ if __name__ == '__main__':
     
     app.run(debug=True, port=5001)
 
-# This is for Vercel
-from http.server import BaseHTTPRequestHandler
-
-def handler(event, context):
-    return app(event, context)
+# Vercel serverless handler
+def handler(request):
+    return app
