@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Room Prompt Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .input-section {
+            display: flex;
+            margin-bottom: 10px;
+        }
+        .input-section input {
+            flex: 1;
+            padding: 8px;
+            margin-right: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .input-section button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .input-section button:hover {
+            background-color: #45a049;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .action-buttons {
+            margin-top: 20px;
+            text-align: center;
+        }
+        .action-buttons button {
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 0 10px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .action-buttons button:hover {
+            background-color: #0b7dda;
+        }
+        .action-buttons button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .loading {
+            text-align: center;
+            margin-top: 20px;
+            display: none;
+        }
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 2s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .prompt-cell {
+            max-width: 400px;
+            word-wrap: break-word;
+        }
+        .api-settings {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+        .api-settings h3 {
+            margin-top: 0;
+        }
+        .api-toggle {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+        }
+        .api-toggle label {
+            margin-left: 10px;
+        }
+        .api-status {
+            margin-left: 15px;
+            font-style: italic;
+        }
+        .api-status.available {
+            color: green;
+        }
+        .api-status.unavailable {
+            color: #888;
+        }
+        .examples {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f0f8ff;
+            border-radius: 8px;
+            border: 1px solid #b8d6f8;
+        }
+        .examples h3 {
+            margin-top: 0;
+            color: #0066cc;
+        }
+        .examples button {
+            background-color: #0066cc;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            margin: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .examples button:hover {
+            background-color: #004c99;
+        }
+        .import-section {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f0fff0;
+            border-radius: 8px;
+            border: 1px solid #c8e4c8;
+        }
+        .import-section h3 {
+            margin-top: 0;
+            color: #2e8b57;
+        }
+        .import-section input[type="file"] {
+            margin-right: 10px;
+        }
+        .import-section button {
+            background-color: #2e8b57;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .import-section button:hover {
+            background-color: #228b22;
+        }
+        /* Prompt editing styles */
+        .edit-button {
+            background-color: #FF9800;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            margin-right: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .edit-button:hover {
+            background-color: #F57C00;
+        }
+        /* Row reordering styles */
+        .drag-handle {
+            cursor: move;
+            padding: 5px;
+            color: #607D8B;
+            font-size: 16px;
+            user-select: none;
+        }
+        .drag-handle:hover {
+            color: #455A64;
+        }
+        tr.dragging {
+            opacity: 0.5;
+            background-color: #f0f0f0;
+        }
+        tr.drag-over {
+            border-top: 2px solid #2196F3;
+        }
+        .action-cell {
+            white-space: nowrap;
+        }
+        .prompt-edit-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1000;
+            overflow: auto;
+        }
+        .prompt-edit-content {
+            background-color: #fefefe;
+            margin: 10% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 800px;
+            border-radius: 8px;
+        }
+        .prompt-edit-content h2 {
+            margin-top: 0;
+            color: #333;
+        }
+        .prompt-edit-content textarea {
+            width: 100%;
+            height: 200px;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: Arial, sans-serif;
+            resize: vertical;
+        }
+        .prompt-edit-buttons {
+            text-align: right;
+        }
+        .prompt-edit-buttons button {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        .prompt-save-button {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .prompt-cancel-button {
+            background-color: #f44336;
+            color: white;
+        }
+        .close-button {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close-button:hover {
+            color: black;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Data Room Prompt Generator</h1>
+        
+        <div class="api-settings">
+            <h3>API Settings</h3>
+            <div class="api-toggle">
+                <input type="checkbox" id="useAnthropicApi" onchange="checkApiStatus()">
+                <label for="useAnthropicApi">Use Anthropic API for prompt generation</label>
+                <span id="apiStatus" class="api-status unavailable">(Checking status...)</span>
+            </div>
+        </div>
+        
+        <div class="examples">
+            <h3>Example Categories</h3>
+            <p>Click to add common data room categories:</p>
+            <div>
+                <button onclick="addCategory('Owners & Managers')">Owners & Managers</button>
+                <button onclick="addCategory('Summary & Background')">Summary & Background</button>
+                <button onclick="addCategory('Financial Information')">Financial Information</button>
+                <button onclick="addCategory('Legal & Compliance')">Legal & Compliance</button>
+                <button onclick="addCategory('Operations')">Operations</button>
+                <button onclick="addCategory('Market & Customers')">Market & Customers</button>
+            </div>
+        </div>
+        
+        <div class="input-section">
+            <input type="text" id="category" placeholder="Category (e.g., Owners & Managers)">
+            <input type="text" id="question" placeholder="Sub-category (e.g., Shareholder List)">
+            <button onclick="addRow()">Add</button>
+        </div>
+        
+        <table id="dataTable">
+            <thead>
+                <tr>
+                    <th>Category</th>
+                    <th>Sub-category</th>
+                    <th>Prompt</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Table rows will be added here -->
+            </tbody>
+        </table>
+        
+        <div class="import-section">
+            <h3>Import from CSV</h3>
+            <p>Upload a CSV file with columns: Category, Sub-category, Prompt (optional)</p>
+            <input type="file" id="csvFileInput" accept=".csv" />
+            <button id="importCsvBtn" onclick="importCsv()">Import CSV</button>
+        </div>
+        
+        <div class="action-buttons">
+            <button id="generatePromptsBtn" onclick="generatePrompts()">Generate Prompts</button>
+            <button id="exportCsvBtn" onclick="exportToCsv()" disabled>Export to CSV</button>
+        </div>
+        
+        <div class="loading" id="loadingIndicator">
+            <div class="spinner"></div>
+            <p id="loadingText">Processing... This may take a moment.</p>
+        </div>
+        
+        <!-- Prompt Edit Modal -->
+        <div id="promptEditModal" class="prompt-edit-modal">
+            <div class="prompt-edit-content">
+                <span class="close-button" onclick="closeEditModal()">&times;</span>
+                <h2>Edit Prompt</h2>
+                <textarea id="editPromptText"></textarea>
+                <div class="prompt-edit-buttons">
+                    <button class="prompt-cancel-button" onclick="closeEditModal()">Cancel</button>
+                    <button class="prompt-save-button" onclick="savePromptEdit()">Save Changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let data = [];
+        let apiAvailable = false;
+        let currentEditIndex = -1;
+        
+        // Check API status on page load
+        window.onload = function() {
+            checkApiStatus();
+        };
+        
+        function checkApiStatus() {
+            fetch('/api-status')
+                .then(response => response.json())
+                .then(result => {
+                    apiAvailable = result.status === 'available';
+                    const statusElement = document.getElementById('apiStatus');
+                    
+                    if (apiAvailable) {
+                        statusElement.textContent = '(Available)';
+                        statusElement.className = 'api-status available';
+                    } else {
+                        statusElement.textContent = '(Unavailable - using simulated responses)';
+                        statusElement.className = 'api-status unavailable';
+                        document.getElementById('useAnthropicApi').checked = false;
+                        document.getElementById('useAnthropicApi').disabled = true;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error checking API status:', error);
+                    document.getElementById('apiStatus').textContent = '(Error checking status)';
+                    document.getElementById('apiStatus').className = 'api-status unavailable';
+                });
+        }
+        
+        function addCategory(category) {
+            document.getElementById('category').value = category;
+            document.getElementById('question').focus();
+        }
+        
+        function addRow() {
+            const category = document.getElementById('category').value.trim();
+            const question = document.getElementById('question').value.trim();
+            
+            if (category === '' || question === '') {
+                alert('Please enter both category and question.');
+                return;
+            }
+            
+            const newItem = {
+                category: category,
+                question: question,
+                prompt: ''
+            };
+            
+            data.push(newItem);
+            updateTable();
+            
+            // Clear input fields
+            document.getElementById('category').value = '';
+            document.getElementById('question').value = '';
+            document.getElementById('category').focus();
+        }
+        
+        function updateTable() {
+            const tableBody = document.querySelector('#dataTable tbody');
+            tableBody.innerHTML = '';
+            
+            data.forEach((item, index) => {
+                const row = document.createElement('tr');
+                
+                const categoryCell = document.createElement('td');
+                categoryCell.textContent = item.category;
+                
+                const questionCell = document.createElement('td');
+                questionCell.textContent = item.question;
+                
+                const promptCell = document.createElement('td');
+                promptCell.textContent = item.prompt;
+                promptCell.className = 'prompt-cell';
+                
+                const actionCell = document.createElement('td');
+                actionCell.className = 'action-cell';
+                
+                // Add drag handle for reordering
+                const dragHandle = document.createElement('span');
+                dragHandle.innerHTML = '&#8212;&#8212;'; // Double em dash
+                dragHandle.className = 'drag-handle';
+                dragHandle.title = 'Drag to reorder';
+                actionCell.appendChild(dragHandle);
+                
+                // Add drag and drop functionality
+                row.setAttribute('draggable', 'true');
+                row.dataset.index = index;
+                
+                row.addEventListener('dragstart', function(e) {
+                    e.dataTransfer.setData('text/plain', index);
+                    setTimeout(() => {
+                        this.classList.add('dragging');
+                    }, 0);
+                });
+                
+                row.addEventListener('dragend', function() {
+                    this.classList.remove('dragging');
+                    const rows = document.querySelectorAll('#dataTable tbody tr');
+                    rows.forEach(row => {
+                        row.classList.remove('drag-over');
+                    });
+                });
+                
+                row.addEventListener('dragover', function(e) {
+                    e.preventDefault();
+                    this.classList.add('drag-over');
+                });
+                
+                row.addEventListener('dragleave', function() {
+                    this.classList.remove('drag-over');
+                });
+                
+                row.addEventListener('drop', function(e) {
+                    e.preventDefault();
+                    const sourceIndex = parseInt(e.dataTransfer.getData('text/plain'));
+                    const targetIndex = parseInt(this.dataset.index);
+                    if (sourceIndex !== targetIndex) {
+                        reorderRow(sourceIndex, targetIndex);
+                    }
+                });
+                
+                // Only add edit button if there's a prompt to edit
+                if (item.prompt) {
+                    const editButton = document.createElement('button');
+                    editButton.textContent = 'Edit';
+                    editButton.className = 'edit-button';
+                    editButton.onclick = () => openEditModal(index);
+                    actionCell.appendChild(editButton);
+                }
+                
+                const deleteButton = document.createElement('button');
+                deleteButton.textContent = 'Delete';
+                deleteButton.style.backgroundColor = '#f44336';
+                deleteButton.style.color = 'white';
+                deleteButton.style.border = 'none';
+                deleteButton.style.padding = '5px 10px';
+                deleteButton.style.borderRadius = '4px';
+                deleteButton.style.cursor = 'pointer';
+                deleteButton.onclick = () => deleteRow(index);
+                actionCell.appendChild(deleteButton);
+                
+                row.appendChild(categoryCell);
+                row.appendChild(questionCell);
+                row.appendChild(promptCell);
+                row.appendChild(actionCell);
+                
+                tableBody.appendChild(row);
+            });
+            
+            // Enable/disable export button based on whether prompts exist
+            const hasPrompts = data.some(item => item.prompt !== '');
+            document.getElementById('exportCsvBtn').disabled = !hasPrompts;
+        }
+        
+        function deleteRow(index) {
+            data.splice(index, 1);
+            updateTable();
+        }
+        
+        // Row reordering function
+        function reorderRow(sourceIndex, targetIndex) {
+            // Get the item to move
+            const itemToMove = data[sourceIndex];
+            
+            // Remove the item from its original position
+            data.splice(sourceIndex, 1);
+            
+            // Insert the item at the new position
+            data.splice(targetIndex, 0, itemToMove);
+            
+            // Update the table
+            updateTable();
+        }
+        
+        async function generatePrompts() {
+            if (data.length === 0) {
+                alert('Please add at least one row of data.');
+                return;
+            }
+            
+            // Show loading indicator
+            document.getElementById('loadingText').textContent = 'Generating prompts... This may take a moment.';
+            document.getElementById('loadingIndicator').style.display = 'block';
+            document.getElementById('generatePromptsBtn').disabled = true;
+            
+            try {
+                // Check if we should use the Anthropic API
+                const useAnthropicApi = document.getElementById('useAnthropicApi').checked && apiAvailable;
+                
+                // Send data to server for prompt generation
+                const response = await fetch(`/generate-prompts?use_anthropic=${useAnthropicApi}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to generate prompts');
+                }
+                
+                const result = await response.json();
+                data = result;
+                updateTable();
+                
+                // Enable export button
+                document.getElementById('exportCsvBtn').disabled = false;
+                
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred while generating prompts. Please try again.');
+            } finally {
+                // Hide loading indicator
+                document.getElementById('loadingIndicator').style.display = 'none';
+                document.getElementById('generatePromptsBtn').disabled = false;
+            }
+        }
+        
+        async function importCsv() {
+            const fileInput = document.getElementById('csvFileInput');
+            if (!fileInput.files || fileInput.files.length === 0) {
+                alert('Please select a CSV file to import.');
+                return;
+            }
+            
+            const file = fileInput.files[0];
+            if (!file.name.endsWith('.csv')) {
+                alert('File must be a CSV file.');
+                return;
+            }
+            
+            // Show loading indicator
+            document.getElementById('loadingText').textContent = 'Importing CSV... This may take a moment.';
+            document.getElementById('loadingIndicator').style.display = 'block';
+            
+            try {
+                const formData = new FormData();
+                formData.append('file', file);
+                
+                const response = await fetch('/import-csv', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    throw new Error('Server returned non-JSON response: ' + await response.text());
+                }
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Failed to import CSV');
+                }
+                
+                const importedData = await response.json();
+                
+                // Add the imported data to existing data
+                if (importedData && importedData.length > 0) {
+                    data = [...data, ...importedData];
+                    updateTable();
+                    alert(`Successfully imported ${importedData.length} items.`);
+                    
+                    // Reset the file input
+                    fileInput.value = '';
+                } else {
+                    alert('No valid data found in CSV file.');
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                alert(`Error importing CSV: ${error.message}`);
+            } finally {
+                // Hide loading indicator
+                document.getElementById('loadingIndicator').style.display = 'none';
+            }
+        }
+        
+        // Prompt editing functions
+        function openEditModal(index) {
+            currentEditIndex = index;
+            document.getElementById('editPromptText').value = data[index].prompt;
+            document.getElementById('promptEditModal').style.display = 'block';
+        }
+        
+        function closeEditModal() {
+            document.getElementById('promptEditModal').style.display = 'none';
+            currentEditIndex = -1;
+        }
+        
+        function savePromptEdit() {
+            if (currentEditIndex >= 0 && currentEditIndex < data.length) {
+                const newPrompt = document.getElementById('editPromptText').value.trim();
+                if (newPrompt) {
+                    data[currentEditIndex].prompt = newPrompt;
+                    updateTable();
+                    closeEditModal();
+                } else {
+                    alert('Prompt cannot be empty.');
+                }
+            }
+        }
+        
+        // Close modal when clicking outside of it
+        window.onclick = function(event) {
+            const modal = document.getElementById('promptEditModal');
+            if (event.target === modal) {
+                closeEditModal();
+            }
+        };
+        
+        function exportToCsv() {
+            if (data.length === 0 || !data.some(item => item.prompt !== '')) {
+                alert('No data to export or prompts have not been generated.');
+                return;
+            }
+            
+            let csvContent = '';
+            
+            // Add data rows
+            data.forEach(item => {
+                // Escape commas and quotes in the fields
+                const escapedCategory = item.category.replace(/"/g, '""');
+                const escapedQuestion = item.question.replace(/"/g, '""');
+                const escapedPrompt = item.prompt.replace(/"/g, '""');
+                
+                csvContent += `"${escapedCategory}","${escapedQuestion}","${escapedPrompt}"\n`;
+            });
+            
+            // Create a blob and download link
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.setAttribute('href', url);
+            link.setAttribute('download', 'data_room_prompts.csv');
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+</body>
+</html>
