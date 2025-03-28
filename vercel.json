@@ -1,5 +1,15 @@
 {
   "version": 2,
+  "buildCommand": "",
+  "devCommand": "python app_with_anthropic.py",
+  "framework": null,
+  "outputDirectory": ".",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/api/index.py"
+    }
+  ],
   "builds": [
     {
       "src": "api/index.py",
@@ -7,12 +17,6 @@
       "config": {
         "maxLambdaSize": "50mb"
       }
-    }
-  ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "api/index.py"
     }
   ]
 }
